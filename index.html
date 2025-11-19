@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦊 狐假虎威：語詞自我練習</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+            background-color: #eef2f3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            touch-action: manipulation; /* 優化觸控體驗 */
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin: 10px 0;
+            font-size: 1.5rem;
+        }
+
+        /* 卡片主體 */
+        .card {
+            background: white;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+
+        /* 進度條 */
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #3498db;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .status-text {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-bottom: 15px;
+        }
+
+        /* 發音按鈕 */
+        .audio-btn {
+            background-color: #f39c12;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            font-size: 32px;
+            cursor: pointer;
+            margin: 0 auto 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+            transition: transform 0.1s;
+        }
+        .audio-btn:active {
+            transform: scale(0.95);
+            background-color: #d35400;
+        }
+
+        /* 題目區塊 */
+        .section-title {
+            font-size: 1rem;
+            color: #95a5a6;
+            text-transform: uppercase;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .content-text {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            line-height: 1.6;
+            font-weight: bold;
+            min-height: 3em; /* 保持高度避免跳動 */
+        }
+
+        .sentence-box {
+            background-color: #f8f9fa;
+            border-left: 5px solid #3498db;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-size: 1.2rem;
+            text-align: left;
+            color: #34495e;
+        }
+
+        /* 挖空樣式 */
+        .blank {
+            display: inline-block;
+            min-width: 80px;
+            border-bottom: 3px solid #2c3e50;
+            color: transparent;
+            text-align: center;
+            padding: 0 5px;
+        }
+
+        /* 答案揭曉樣式 */
+        .revealed {
+            color: #e74c3c !important;
+            border-bottom: none;
+            font-weight: bold;
+            animation: popIn 0.3s ease;
+        }
+        
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* 控制按鈕區 */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-show {
+            background-color: #27ae60;
+            color: white;
+        }
+        .btn-show:hover { background-color: #2ecc71; }
+
+        .btn-nav {
+            background-color: #bdc3c7;
+            color: #2c3e50;
+        }
+        .btn-nav:hover { background-color: #aab7b8; }
+        
+        /* 隱藏元素 */
+        .hidden { display: none; }
+
+    </style>
+</head>
+<body>
+
+    <h1>🦊 語詞自我練習</h1>
+
+    <div class="card">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="status-text">題目 <span id="currentNum">1</span> / <span id="totalNum">10</span></div>
+
+        <button class="audio-btn" onclick="playAudio()" title="播放發音">🔊</button>
+
+        <div class="section-title">解釋</div>
+        <div class="content-text" id="defText">載入中...</div>
+
+        <div class="section-title">例句填空</div>
+        <div class="sentence-box" id="sentenceText">
+            載入中...
+        </div>
+
+        <div id="answerArea" class="hidden">
+            <div class="section-title" style="color: #e74c3c;">正確答案</div>
+            <div class="content-text" style="font-size: 2rem; color: #e74c3c;" id="answerWord"></div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-nav" onclick="prevCard()">⬅ 上一題</button>
+            <button class="btn btn-show" onclick="toggleAnswer()" id="toggleBtn">👁️ 看答案</button>
+            <button class="btn btn-nav" onclick="nextCard()">下一題 ➡</button>
+        </div>
+    </div>
+
+    <script>
+        // 完整資料庫 (包含語詞、解釋、例句)
+        const database = [
+            { word: "邁步", def: "提起腳向前大步走。", sentence: "聽到集合的哨音，大家立刻邁步向操場跑去。" },
+            { word: "條紋", def: "物體表面條狀的紋路。", sentence: "斑馬身上黑白相間的條紋，在草原上非常顯眼。" },
+            { word: "張望", def: "向四周或遠處看。", sentence: "他站在路口四處張望，似乎在尋找走失的寵物。" },
+            { word: "獵物", def: "被獵人或野獸捕食的動物。", sentence: "老鷹在天空中盤旋，銳利的眼睛緊盯著地面的獵物。" },
+            { word: "草叢", def: "聚生在一起的草。", sentence: "小貓躲在草叢裡，準備給經過的蝴蝶一個驚喜。" },
+            { word: "縫隙", def: "裂開或接合處的空隙。", sentence: "陽光透過窗簾的縫隙照進房間，帶來一絲暖意。" },
+            { word: "彷彿", def: "似乎、好像。", sentence: "這裡的風景如畫，讓人彷彿置身於仙境之中。" },
+            { word: "逃竄", def: "亂跑、逃走（通常指小動物）。", sentence: "老鼠一看到貓，立刻()進洞裡不見了。" },
+            { word: "急中生智", def: "在緊急情況下，突然想出應變的好辦法。", sentence: "眼看就要遲到了，他急中生智，改騎腳踏車抄近路去學校。" },
+            { word: "違逆", def: "違背、不順從。", sentence: "在古代，臣子是不敢違逆皇帝命令的。" },
+            { word: "旨意", def: "長官、帝王或神的命令。", sentence: "將軍宣讀了國王的旨意，要求士兵們加強邊境防守。" },
+            { word: "悠閒", def: "閒適自得而不受牽絆。", sentence: "爺爺退休後，過著養花遛鳥的悠閒生活。" },
+            { word: "落荒而逃", def: "形容戰敗或失敗後，倉皇狼狽的逃走。", sentence: "敵軍被我方突襲，嚇得丟盔棄甲，落荒而逃。" },
+            { word: "寓言", def: "寄託勸誡或諷刺意味的故事。", sentence: "《伊索寓言》裡有很多關於動物的精彩故事，蘊含著深刻的道理。" },
+            { word: "鷸蚌相爭", def: "比喻雙方爭執不休，結果兩敗俱傷，讓第三者獲利。", sentence: "你們兩個別再吵了，小心鷸蚌相爭，最後讓對手占了便宜。" },
+            { word: "狡兔三窟", def: "比喻人有多處藏身的地方或多種避禍的準備。", sentence: "為了安全起見，這名嫌犯狡兔三窟，警方花了好大力氣才抓到他。" },
+            { word: "狐假虎威", def: "比喻憑藉有權勢者的威勢恐嚇或欺壓別人。", sentence: "他總是仗著父親是經理就狐假虎威，欺負新來的同事。" },
+            { word: "狡猾", def: "詭詐刁鑽，不可信任。", sentence: "狐狸是一種非常狡猾的動物，總能想出辦法騙過獵人。" },
+            { word: "盲目", def: "比喻認識不清，沒有一定的目標。", sentence: "我們做事要有計畫，不能盲目跟從別人的意見。" },
+            { word: "招搖撞騙", def: "形容借名目大肆吹噓，以進行詐騙。", sentence: "警方逮捕了一名在網路上招搖撞騙的男子，避免更多人受害。" },
+            { word: "信以為真", def: "把假的當作真的。", sentence: "他編的故事太逼真了，大家都信以為真，沒人懷疑他在說謊。" },
+            { word: "偽裝", def: "假裝，改裝掩飾真正的面目。", sentence: "網路詐騙常會偽裝成知名機構，騙取民眾的個資。" },
+            { word: "誇大", def: "把事情說得超過原有的程度。", sentence: "廣告雖然可以宣傳產品，但不應該誇大療效誤導消費者。" },
+            { word: "分辨", def: "區別、辨明。", sentence: "這對雙胞胎長得太像了，連老師都很難分辨誰是哥哥、誰是弟弟。" },
+            { word: "謊言", def: "不真實的話、騙人的話。", sentence: "謊言終究會被拆穿，做人還是誠實最重要。" },
+            { word: "諷刺", def: "用含蓄的話嘲笑或揭露不合理的事。", sentence: "這部電影用幽默的手法，諷刺了現代人沈迷手機的現象。" },
+            { word: "作威作福", def: "藉著權勢欺壓別人。", sentence: "那個惡霸在鄉里間作威作福，村民們都對他敢怒不敢言。" },
+            { word: "警惕", def: "對可能發生的危險情況保持敏銳的感覺。", sentence: "我們隨時都要保持警惕，以免發生意外。" },
+            { word: "觀察", def: "仔細察看。", sentence: "科學家需要具備敏銳的觀察力，才能發現微小的變化。" },
+            { word: "蒙蔽", def: "欺騙、隱瞞事實，使人看不清真相。", sentence: "不要被表面的利益蒙蔽了雙眼，而做出了錯誤的決定。" },
+            { word: "虛張聲勢", def: "假裝出強大的氣勢來嚇唬人。", sentence: "對方只是在虛張聲勢，其實他們根本沒有贏的把握。" }
+        ];
+
+        let currentIndex = 0;
+        let isRevealed = false;
+        let questions = [];
+
+        // 初始化
+        window.onload = function() {
+            // 每次重新整理都隨機洗牌
+            questions = shuffleArray([...database]);
+            document.getElementById('totalNum').innerText = questions.length;
+            loadCard();
+        };
+
+        function loadCard() {
+            const data = questions[currentIndex];
+            isRevealed = false;
+
+            // 更新進度
+            document.getElementById('currentNum').innerText = currentIndex + 1;
+            const percentage = ((currentIndex + 1) / questions.length) * 100;
+            document.getElementById('progressFill').style.width = percentage + "%";
+
+            // 更新內容
+            document.getElementById('defText').innerText = data.def;
+            
+            // 處理例句挖空：將語詞替換為底線
+            // 使用 split + join 確保替換所有出現的詞
+            const clozeSentence = data.sentence.split(data.word).join(`<span class="blank">______</span>`);
+            document.getElementById('sentenceText').innerHTML = clozeSentence;
+
+            // 隱藏答案區
+            document.getElementById('answerArea').classList.add('hidden');
+            document.getElementById('answerWord').innerText = data.word;
+            document.getElementById('toggleBtn').innerText = "👁️ 看答案";
+            document.getElementById('toggleBtn').classList.remove('hidden');
+        }
+
+        function toggleAnswer() {
+            const data = questions[currentIndex];
+            const blanks = document.querySelectorAll('.blank');
+            
+            if (!isRevealed) {
+                // 顯示答案
+                document.getElementById('answerArea').classList.remove('hidden');
+                document.getElementById('toggleBtn').innerText = "🙈 隱藏答案";
+                
+                // 將例句中的底線填入文字
+                blanks.forEach(span => {
+                    span.innerText = data.word;
+                    span.classList.add('revealed');
+                });
+
+                isRevealed = true;
+            } else {
+                // 隱藏答案
+                document.getElementById('answerArea').classList.add('hidden');
+                document.getElementById('toggleBtn').innerText = "👁️ 看答案";
+                
+                // 將例句還原為底線
+                blanks.forEach(span => {
+                    span.innerText = "______";
+                    span.classList.remove('revealed');
+                });
+
+                isRevealed = false;
+            }
+        }
+
+        function nextCard() {
+            if (currentIndex < questions.length - 1) {
+                currentIndex++;
+                loadCard();
+            } else {
+                alert("已經是最後一題囉！將重新開始。");
+                currentIndex = 0;
+                questions = shuffleArray([...database]);
+                loadCard();
+            }
+        }
+
+        function prevCard() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                loadCard();
+            }
+        }
+
+        function playAudio() {
+            const text = questions[currentIndex].word;
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-TW';
+                utterance.rate = 0.8; // 稍微放慢語速
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert("您的瀏覽器不支援語音功能");
+            }
+        }
+
+        // 洗牌演算法
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+    </script>
+</body>
+</html>
